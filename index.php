@@ -14,11 +14,25 @@
     
     <link rel='stylesheet' href='https://code.jquery.com/ui/1.13.0/themes/base/jquery-ui.css'>
     <script src="https://code.jquery.com/ui/1.13.0-rc.3/jquery-ui.min.js" integrity="sha256-R6eRO29lbCyPGfninb/kjIXeRjMOqY3VWPVk6gMhREk=" crossorigin="anonymous"></script>
-    </head>
-<body>
-   <div class='container pt-2'>
-   <h5 class="text-white float-right  "><a href='invoiceDetails.php'>Invoice List</a></h5>
+   
+    <link rel="stylesheet" href="style.css">
 
+</head>
+<body>
+<header>
+        <nav>
+            <div class="menu-toggle" id="menu-toggle">
+                ☰
+            </div>
+            <ul id="menu" class="menu text-center">
+                <li><a href="invoiceDetails.php">Invoice List</a></li>
+                <li><a href="customerDeatails.php">Customer List</a></li>
+                <li><a href="productlist.php">Product List</a></li>
+                <li><a href="addcustomer.php">Add Customer </a></li>
+                <li><a href="addProduct.php">Add Product</a></li>   
+            </ul>
+        </nav>
+    </header>   <div class='container pt-2'>
     <h3 class='text-center text-success font-weight-bold '>INVOICE</h3>
     <?php
      $con=mysqli_connect("localhost","root","","invoice_db");
@@ -29,10 +43,11 @@
         $cname =mysqli_real_escape_string($con,$_POST["cname"]);
         $caddress=mysqli_real_escape_string($con,$_POST["caddress"]);
         $ccity =mysqli_real_escape_string($con,$_POST["ccity"]);
+        $mobile_no = mysqli_real_escape_string($con, (string)$_POST['cmobile']);
         $grand_total =mysqli_real_escape_string($con,$_POST["grand_total"]);
         
-         $sql = "insert into invoice(INVOICE_NO,INVOICE_DATE,CNAME,ADDRESS,CITY,GRAND_TOTAL)
-          values('{$invoice_no}','{$invoice_date}','{$cname}','{$caddress}','{$ccity}','{$grand_total}')";
+         $sql = "insert into invoice(INVOICE_NO,INVOICE_DATE,CNAME,ADDRESS,CITY,MOBILE_NO,GRAND_TOTAL)
+          values('{$invoice_no}','{$invoice_date}','{$cname}','{$caddress}','{$ccity}','{$mobile_no}','{$grand_total}')";
           
           if($con->query($sql)){
             $sid=$con->insert_id;
@@ -81,15 +96,20 @@
                 <h5 class='text-success'>Customer Details</h5>
                 <div class='form-group'>
                         <label>Name</label>
-                        <input type='text' name='cname' required class='form-control'/>
-                </div>
+                        <input type='text' id='customer_name' name='cname' required class='form-control'/>
+                       <div id='customerdatashow'></div>
+                    </div>
                 <div class='form-group'>
                         <label>Adress</label>
-                        <input type='text' name='caddress' required  class='form-control'/>
+                        <input type='text' id='customer_address' name='caddress' required  class='form-control'/>
                 </div>
                 <div class='form-group'>
                         <label>City</label>
-                        <input type='text' name='ccity' required  class='form-control'/>
+                        <input type='text' id='customer_city' name='ccity' required  class='form-control'/>
+                </div>
+                <div class='form-group'>
+                        <label>Mobile No</label>
+                        <input type='text' id='customer_mobile' name='cmobile' required  class='form-control'/>
                 </div>
             </div>
         </div>
@@ -108,8 +128,10 @@
                     </thead>
                     <tbody id='product_tbody'>
                         <tr  class="text-center">
-                            <td class='col-md-6'><input type='text' required name='pname[]' class='form-control pname'/></td>
-                            <td><input type='text' required name='price[]' class='form-control price'/></td>
+                            <td class='col-md-6'><input type='text' id='productname' required name='pname[]' class='form-control autocomplete' />
+                        <div id="suggestions"></div>
+                            </td>
+                            <td><input type='text' id='price' required name='price[]' class='form-control price' readonly/></td>
                             <td><input type='text' required name='qty[]' class='form-control qty'/></td>
                             <td><input type='text' required name='total[]' class='form-control total'/></td>
                             <td><input type='button' value='X' class='btn btn-danger btn-sm btn-row-remove'/></td>
@@ -117,6 +139,7 @@
                         </tr>
                     </tbody>
                     <tfoot>
+                   
                         <tr>
                             <td><input type='button' value="+  Add Row" class='btn btn-primary btn-sm' id='btn-add-row'/> </td>
                             <td colspan='2' class='text-right'>Total</td>
@@ -132,6 +155,17 @@
     </form>
 </div>
    <script>
+
+document.addEventListener('DOMContentLoaded', function() {
+    var menuToggle = document.getElementById('menu-toggle');
+    var menu = document.getElementById('menu');
+
+    menuToggle.addEventListener('click', function() {
+        menu.classList.toggle('active');
+    });
+});
+
+ 
     
     $(document).ready(function(){
        
@@ -140,7 +174,8 @@
         });
  
         $("#btn-add-row").click(function(){
-          var row="<tr class='text-center'> <td><input type='text' required name='pname[]' class='form-control'></td><td><input type='text' required name='price[]' class='form-control price'></td> <td><input type='text' required name='qty[]' class='form-control qty'></td> <td><input type='text' required name='total[]' class='form-control total'></td> <td><input type='button' value='x' class='btn btn-danger btn-sm btn-row-remove'> </td> </tr>";
+          var row="<tr class='text-center'> <td><input type='text' id='productname' required name='pname[]' class='form-control autocomplete'><div id='suggestions'></div></td><td><input type='text' id='price' required name='price[]' class='form-control price' readonly></td> <td><input type='text' required name='qty[]' class='form-control qty'></td> <td><input type='text' required name='total[]' class='form-control total'></td> <td><input type='button' value='x' class='btn btn-danger btn-sm btn-row-remove'> </td> </tr>";
+          
           $("#product_tbody").append(row);
 
         });
@@ -177,6 +212,75 @@
         
     
     });
+// CUSTOMER DETAILS HANDLING
+$(document).ready(function() {
+    $('#customer_name').on('input', function() {
+        var query = $(this).val();
+        if (query.length > 0) {
+            $.ajax({
+                url: 'ajax/getcustomer.php',
+                method: 'POST',
+                data: {query: query},
+                success: function(data) {
+                    $('#customerdatashow').html(data);
+                }
+            });
+        } else {
+            $('#customerdatashow').html('');
+        }
+    });
+
+    $(document).on('click', '#customerdatashow div', function() {
+        var customername = $(this).data('customername');
+        var customeraddress = $(this).data('customeraddress');
+        var customercity = $(this).data('customercity');  
+        var customermobile = $(this).data('customermobile');
+
+       
+        $('#customer_address').val(customeraddress);
+        $('#customer_city').val(customercity);
+        $('#customer_mobile').val(customermobile);
+
+        
+       $('#customerdatashow').html('');
+      
+        $('#customer_name').val(customername);
+    });
+});
+
+
+
+    // PRODUCT  HANDING
+    $(document).ready(function() {
+    $('#productname').on('input', function() {
+        var query = $(this).val();
+        if (query.length > 0) {
+            $.ajax({
+                url: 'ajax/getproduct.php',
+                method: 'POST',
+                data: {query: query},
+                success: function(data) {
+                    $('#suggestions').html(data);
+                }
+            });
+        } else {
+            $('#suggestions').html('');
+        }
+    });
+
+    $(document).on('click', '#suggestions div', function() {
+        var productname = $(this).data('productname');
+        var productprice = $(this).data('productprice');
+
+       
+        $('#price').val(productprice);
+        
+       $('#suggestions').html('');
+      
+        $('#productname').val(productname);
+    });
+});
+
 
     </script>
     

@@ -8,6 +8,7 @@
     "customer"=>"",
     "address"=>",",
     "city"=>"",
+    "mobile"=>"",
     "invoice_no"=>"",
     "invoice_date"=>"",
     "total_amt"=>"",
@@ -27,6 +28,7 @@
 		"customer"=>$row["CNAME"],
 		"address"=>$row["ADDRESS"],
 		"city"=>$row["CITY"],
+    "mobile"=>mysqli_real_escape_string($con, (string)$row['MOBILE_NO']),
 		"invoice_no"=>$row["INVOICE_NO"],
 		"invoice_date"=>date("d-m-Y",strtotime($row["INVOICE_DATE"])),
 		"total_amt"=>$row["GRAND_TOTAL"],
@@ -83,7 +85,8 @@
       $this->SetFont('Arial','',12);
       $this->Cell(50,7,$info["customer"],0,1);
       $this->Cell(50,7,$info["address"],0,1);
-      $this->Cell(50,7,$info["city"],0,1);
+      $this->Cell(30,7,$info["city"],0,1);
+      $this->Cell(50,7,$info["mobile"],0,1);
       
       //Display Invoice no
       $this->SetY(55);

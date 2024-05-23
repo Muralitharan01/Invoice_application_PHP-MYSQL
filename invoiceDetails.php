@@ -7,14 +7,14 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     </head>
   <body>
-        <div class="container">
+        <div class="container pt-4">
             <div class="row">
               <div class="col-md-16">
                 <div class="card" >
                   <div class="card-header">
                      <h1 class=text-center>Invoice List</h1> </div>
                      <div class="card-body">
-                     <button class="btn btn-success"><a href="index.php" class="text-light text-decoration-none">Add New</a></button>
+                     <button class="btn btn-success"><a href="index.php" class="text-light text-decoration-none">Create New Bill</a></button>
                         <br/>
                         <br/>
                        <table class="table">
@@ -26,6 +26,7 @@
                               <th scope="col">NAME</th>
                               <th scope="col">ADDRESS</th>
                               <th scope="col">CITY</th>
+                              <th scope="col">MOBILE_NO</th>
                               <th scope="col">GRAND TOTAL</th>
                               <th scope="col">PRINT DOC</th>
                               <th scope="col">DELETE</th>
@@ -48,6 +49,7 @@
                    $cname =$row['CNAME'];
                    $address  = $row ['ADDRESS'];
                    $city=$row['CITY'];
+                   $cmobile=mysqli_real_escape_string($connection,$row['MOBILE_NO']);
                    $grand_total=$row['GRAND_TOTAL'];
 
      ?>
@@ -59,16 +61,16 @@
                             <td><?php echo $cname ?></td>
                             <td><?php echo $address ?></td>
                             <td><?php echo $city ?></td>
+                            <td><?php echo $cmobile ?></td>
                             <td><?php echo $grand_total ?></td>
                             <td>
                               <button class="btn btn-success">
                                 <a href ='print.php?id=<?php echo $sid ?>' class="text-light text-decoration-none">Print</a></button>
                               </td>
                               <td> 
-                                 <button class="btn btn-danger"><a href ='invoiceDel.php?del=<?php echo $sid ?>' class="text-light text-decoration-none">Delete</a></button>&nbsp;
-
+                                 <button class="btn btn-danger">
+                                  <a href ='invoiceDel.php?del=<?php echo $sid ?>' class="text-light text-decoration-none">Delete</a></button>&nbsp;
                           </td>
-
                           </tr>
                         
   <?php  } ?>
@@ -76,19 +78,9 @@
                         </tbody>
                      </table>
                   </div>
-                </div>
-        
+                </div>       
             </div>
         </div>
-
     </div>
-    
-
-
-
-
-
-
-
   </body>
 </html>

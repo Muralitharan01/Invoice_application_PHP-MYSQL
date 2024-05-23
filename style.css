@@ -1,0 +1,38 @@
+body {
+    font-family: Arial, sans-serif;
+    
+}
+
+header {
+    background: #ffffffd2;
+    color: #f1f1f1;
+    padding: 10px 20px;
+}
+
+.menu-toggle {
+    font-size: 20px;
+    cursor: pointer;
+    display: inline-block;
+    padding: 10px;
+    background: #604141;
+    border-radius: 5px;
+}
+
+nav ul {
+    list-style-type: none;
+    padding: 0;
+    display: none; /* Hide menu by default */
+}
+
+nav ul.active {
+    display: block; /* Show menu when active */
+}
+
+nav ul li {
+    margin: 10px 0;
+}
+
+nav ul li a {
+    color: #1a1919;
+    text-decoration: none;
+}
