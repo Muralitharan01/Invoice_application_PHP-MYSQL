@@ -1,5 +1,4 @@
-<?php
-session_start();
+<?php session_start();
 $conn = mysqli_connect('localhost','root','','invoice_db');
 if ($conn->connect_error) {
   die("Connection failed: " . $conn->connect_error);
@@ -8,9 +7,9 @@ if ($conn->connect_error) {
 // Check if form is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
   // Get the form data
-  $c_name = $_POST['customer_name'];
-  $c_address = $_POST['customer_address'];
-  $c_number = $_POST['customer_number'];
+  $company_name = $_POST['company_name'];
+  $company_address = $_POST['company_address'];
+  $company_contact = $_POST['company_number'];
 
   $c_city =   $_POST['city'];
 
@@ -39,14 +38,14 @@ $country_value= $country_datas['name'];
 
   $c_pincode = $_POST['pincode'];
 
-  $customer_city= $city_value . ', ' . $state_value . ', ' . $country_value .','. $c_pincode ;
+  $company_details= $company_address . ', '.$city_value . ', ' . $state_value . ', ' . $country_value .','. $c_pincode ;
 
   // Insert data into the database
-  $sql = "INSERT INTO add_customer(CUSNAME,CUSADDRESS,CUSCITY,CUSMOBILE) 
-  VALUES ('$c_name', '$c_address','$customer_city', '$c_number')";
+  $sql = "INSERT INTO supplier_list(company_name,company_address,contact) 
+  VALUES ('$company_name','$company_details', '$company_contact')";
 
   if ($conn->query($sql) === TRUE) {
-    echo "<div class='alert alert-info text-center'>New Customer Addeed successfully   see<a href='customerDeatails.php'>Customer List</a></div>";
+    echo "<div class='alert alert-info text-center'>New Supplier Addeed successfully   see<a href='SupplierList.php'>Supplier List</a></div>";
 
   } else {
       echo "Error: " . $sql . "<br>" . $conn->error;
@@ -55,25 +54,26 @@ $country_value= $country_datas['name'];
 
 include 'include_common/header.php' ?>
     
-  <div class="addcustomer_page mt-4">
+  <div class="addsupplier_page mt-4">
     <div class=" ">
-      <h3 class="text-start ">Add Customer</h3>
-      <form method='post' action='addcustomer.php'>
+      <h3 class="text-center font-monospace ">Add Supplier Detail</h3>
+      <form method='post' action='addsupplier.php'>
 
         <div class="form-row">
-          <div class="form-group col-md-12">
-            <label for="inputName">Name</label>
-            <input type="text" name="customer_name" class="form-control" id="inputName" placeholder="Enter Name">
+        
+          <div class="form-group col-md-12 ">
+            <label for="inputName">Company Name</label>
+            <input type="text" name="company_name" class="form-control" id="inputName" placeholder="Enter Company Name">
           </div>
 
         </div>
-        <div class="form-group ">
-          <label for="inputAddress">Address</label>
-          <input type="text" name="customer_address" class="form-control" id="inputAddress" placeholder="Address">
+        <div class="form-group  ">
+          <label for="inputAddress">Company Address</label>
+          <input type="text" name="company_address" class="form-control" id="inputAddress" placeholder="Address">
         </div>
         <div class="form-group ">
-          <label for="inputNumber">Mobile Number</label>
-          <input type="text" name="customer_number" class="form-control" id="inputNumber" placeholder="Enter Mobile Number">
+          <label for="inputNumber">Contact</label>
+          <input type="text" name="company_number" class="form-control" id="inputNumber" placeholder="Enter Mobile Number">
         </div>
                 <div class="form-group ">
                  <label for="country">Country</label>
@@ -111,7 +111,7 @@ include 'include_common/header.php' ?>
 
                                 </div>
                 
-                                <button type="submit" class="btn btn-primary mt-4 ">ADD</button>
+                                <button type="submit" class="btn btn-primary mt-4 ">ADD Supplier</button>
 
         </div>
               

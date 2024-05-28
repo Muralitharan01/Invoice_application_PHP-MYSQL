@@ -1,124 +1,116 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice</title>
- 
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-    
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
-    
-    <link rel='stylesheet' href='https://code.jquery.com/ui/1.13.0/themes/base/jquery-ui.css'>
-    <script src="https://code.jquery.com/ui/1.13.0-rc.3/jquery-ui.min.js" integrity="sha256-R6eRO29lbCyPGfninb/kjIXeRjMOqY3VWPVk6gMhREk=" crossorigin="anonymous"></script>
-   
-    <link rel="stylesheet" href="style.css">
+<?php
+session_start();
 
-</head>
-<body>
-<header>
-        <nav>
-            <div class="menu-toggle" id="menu-toggle">
-                ☰
-            </div>
-            <ul id="menu" class="menu text-center">
-                <li><a href="invoiceDetails.php">Invoice List</a></li>
-                <li><a href="customerDeatails.php">Customer List</a></li>
-                <li><a href="productlist.php">Product List</a></li>
-                <li><a href="addcustomer.php">Add Customer </a></li>
-                <li><a href="addProduct.php">Add Product</a></li>   
-            </ul>
-        </nav>
-    </header>   <div class='container pt-2'>
-    <h3 class='text-center text-success font-weight-bold '>INVOICE</h3>
+include 'include_common/header.php'; 
+?>
+<div class='container pt-2'>
+    <h3 class='text-center text-success font-weight-bold'>INVOICE</h3>
     <?php
-     $con=mysqli_connect("localhost","root","","invoice_db");
+    $con = mysqli_connect("localhost", "root", "", "invoice_db");
 
-     if(isset($_POST{"submit"})){
-         $invoice_no = $_POST["invoice_no"];
-        $invoice_date=date("y-m-d",strtotime($_POST["invoice_date"]));
-        $cname =mysqli_real_escape_string($con,$_POST["cname"]);
-        $caddress=mysqli_real_escape_string($con,$_POST["caddress"]);
-        $ccity =mysqli_real_escape_string($con,$_POST["ccity"]);
+    if (isset($_POST["submit"])) {
+        $invoice_no = $_POST["invoice_no"];
+        $invoice_date = date("y-m-d", strtotime($_POST["invoice_date"]));
+        $cname = mysqli_real_escape_string($con, $_POST["cname"]);
+        $caddress = mysqli_real_escape_string($con, $_POST["caddress"]);
+        $ccity = mysqli_real_escape_string($con, $_POST["ccity"]);
         $mobile_no = mysqli_real_escape_string($con, (string)$_POST['cmobile']);
-        $grand_total =mysqli_real_escape_string($con,$_POST["grand_total"]);
-        
-         $sql = "insert into invoice(INVOICE_NO,INVOICE_DATE,CNAME,ADDRESS,CITY,MOBILE_NO,GRAND_TOTAL)
-          values('{$invoice_no}','{$invoice_date}','{$cname}','{$caddress}','{$ccity}','{$mobile_no}','{$grand_total}')";
-          
-          if($con->query($sql)){
-            $sid=$con->insert_id;
+        $grand_total = mysqli_real_escape_string($con, $_POST["grand_total"]);
 
-            $sql2 = "insert into invoice_product(SID,PNAME,PRICE,QTY,TOTAL)
-            values";
-            $row=[];
-            for($i=0;$i<count($_POST['pname']);$i++){
-                $pname=mysqli_real_escape_string($con,$_POST["pname"][$i]);
-                $price=mysqli_real_escape_string($con,$_POST["price"][$i]);
-                $qty=mysqli_real_escape_string($con,$_POST["qty"][$i]);
-                $total=mysqli_real_escape_string($con,$_POST["total"][$i]);
+        $sql = "INSERT INTO invoice (INVOICE_NO, INVOICE_DATE, CNAME, ADDRESS, CITY, MOBILE_NO, GRAND_TOTAL)
+                VALUES ('{$invoice_no}', '{$invoice_date}', '{$cname}', '{$caddress}', '{$ccity}', '{$mobile_no}', '{$grand_total}')";
 
-                $rows[]="('{$sid}','{$pname}','{$price}','{$qty}','{$total}')";
+        if ($con->query($sql)) {
+            $sid = $con->insert_id;
+            $rows = [];
+            $product_error=[];
+            $result=[];
+            // $stocks_update_query=[];
+
+            for ($i = 0; $i < count($_POST['pname']); $i++) {
+                $pname = mysqli_real_escape_string($con, $_POST["pname"][$i]);
+                $price = mysqli_real_escape_string($con, $_POST["price"][$i]);
+                $qty = mysqli_real_escape_string($con, $_POST["qty"][$i]);
+                $total = mysqli_real_escape_string($con, $_POST["total"][$i]);
+
+                $product_check_sql = "SELECT * FROM product_list WHERE PRODUCT_NAME = '$pname'";
+                $product_result = mysqli_query($con, $product_check_sql);
+
+                if ($product_result && mysqli_num_rows($product_result) > 0) {
+                    $product_row = mysqli_fetch_assoc($product_result);
+                    $product_stock_qty = $product_row['item_qty'];
+
+                    if ($product_stock_qty >= $qty) {
+                        $rows[] = "('{$sid}', '{$pname}', '{$price}', '{$qty}', '{$total}')";
+                        $stocks_update_query = "UPDATE product_list SET item_qty = item_qty-{$qty} WHERE PRODUCT_NAME = '$pname'";
+               $result[] =$con->query($stocks_update_query);
+                    } else {
+                        echo "<div class='alert alert-warning text-center'>Insufficient stock for product: $pname</div>";
+                        $product_error = true;
+                        break;
+                    }
+                } else {
+                    echo "<div class='alert alert-danger text-center'>Product not found: $pname</div>";
+                    $product_error = true;
+                    break;
+                }
             }
-          $sql2.=implode(",",$rows);
-          if($con->query($sql2)){
-            echo"<div class='alert alert-success'>invoice Added<a href='print.php?id={$sid} target='_BLANK''>Click</a></div>";
-          }else{
-            echo"<div class='alert alert-danger'>invoice Added Fail</div>";
 
-          }
-          }
-          else{
-            echo"<div class='alert alert-danger'>invoice Added Fail</div>";
-
-          }
-
-     };
-
+            if (!$product_error) {
+                $sql2 = "INSERT INTO invoice_product (SID, PNAME, PRICE, QTY, TOTAL) VALUES " . implode(",", $rows);
+                
+                if ($con->query($sql2)) {
+                    echo "<div class='alert alert-success'>Invoice Added. <a href='print.php?id={$sid}' target='_BLANK'>Click to print</a></div>";
+                } else {
+                    echo "<div class='alert alert-danger'>Invoice Addition Failed</div>";
+                }
+            }
+        } else {
+            echo "<div class='alert alert-danger'>Invoice Addition Failed</div>";
+        }
+    }
     ?>
+
     <form method='post' action='index.php' autocomplete='off'>
         <div class='row'>
             <div class='col-md-4'>
                 <h5 class='text-success'>Invoice Details</h5>
                 <div class='form-group'>
-                        <label>Invoice NO</label>
-                        <input type='text' name='invoice_no' required class='form-control'/>
+                    <label>Invoice NO</label>
+                    <input type='text' name='invoice_no' required class='form-control'/>
                 </div>
                 <div class='form-group'>
-                        <label>Invoice Date</label>
-                        <input type='text' name='invoice_date' id='date' required  class='form-control'/>
+                    <label>Invoice Date</label>
+                    <input type='text' name='invoice_date' id='date' required class='form-control'/>
                 </div>
             </div>
             <div class='col-md-8'>
                 <h5 class='text-success'>Customer Details</h5>
                 <div class='form-group'>
-                        <label>Name</label>
-                        <input type='text' id='customer_name' name='cname' required class='form-control'/>
-                       <div id='customerdatashow'></div>
-                    </div>
-                <div class='form-group'>
-                        <label>Adress</label>
-                        <input type='text' id='customer_address' name='caddress' required  class='form-control'/>
+                    <label>Name</label>
+                    <input type='text' id='customer_name' name='cname' required class='form-control'/>
+                    <div id='customerdatashow'></div>
                 </div>
                 <div class='form-group'>
-                        <label>City</label>
-                        <input type='text' id='customer_city' name='ccity' required  class='form-control'/>
+                    <label>Address</label>
+                    <input type='text' id='customer_address' name='caddress' required class='form-control'/>
                 </div>
                 <div class='form-group'>
-                        <label>Mobile No</label>
-                        <input type='text' id='customer_mobile' name='cmobile' required  class='form-control'/>
+                    <label>City</label>
+                    <input type='text' id='customer_city' name='ccity' required class='form-control'/>
+                </div>
+                <div class='form-group'>
+                    <label>Mobile No</label>
+                    <input type='text' id='customer_mobile' name='cmobile' required class='form-control'/>
                 </div>
             </div>
         </div>
         <div class='row'>
-             <div class='col-md-12'>
-                <h5 class='text success'>Product Details</h5>
+            <div class='col-md-12'>
+                <h5 class='text-success'>Product Details</h5>
                 <table class='table table-bordered'>
                     <thead>
-                        <tr  class="text-center"> 
+                        <tr class='text-center'>
                             <th>Product</th>
                             <th>Price</th>
                             <th>Qty</th>
@@ -127,46 +119,33 @@
                         </tr>
                     </thead>
                     <tbody id='product_tbody'>
-                        <tr  class="text-center">
-                            <td class='col-md-6'><input type='text' id='productname' required name='pname[]' class='form-control autocomplete' />
-                        <div id="suggestions"></div>
+                        <tr class='text-center'>
+                            <td class='col-md-6'>
+                                <input type='text' name='pname[]' id='productname' class='form-control autocomplete' required/>
+                                <div id='suggestions'></div>
                             </td>
-                            <td><input type='text' id='price' required name='price[]' class='form-control price' readonly/></td>
-                            <td><input type='text' required name='qty[]' class='form-control qty'/></td>
-                            <td><input type='text' required name='total[]' class='form-control total'/></td>
+                            <td><input type='text' name='price[]' id='price' class='form-control price' readonly required/></td>
+                            <td><input type='text' name='qty[]' class='form-control qty' required/></td>
+                            <td><input type='text' name='total[]' class='form-control total' required/></td>
                             <td><input type='button' value='X' class='btn btn-danger btn-sm btn-row-remove'/></td>
-                            
                         </tr>
                     </tbody>
                     <tfoot>
-                   
                         <tr>
-                            <td><input type='button' value="+  Add Row" class='btn btn-primary btn-sm' id='btn-add-row'/> </td>
+                            <td><input type='button' value='+ Add Row' class='btn btn-primary btn-sm' id='btn-add-row'/></td>
                             <td colspan='2' class='text-right'>Total</td>
-                            <td><input type='text' id='grand_total' name='grand_total' class='form-control' /> </td>
-
-                        </tr> 
+                            <td><input type='text' id='grand_total' name='grand_total' class='form-control'/></td>
+                        </tr>
                     </tfoot>
                 </table>
                 <input type='submit' name='submit' value='Save' class='btn btn-success float-right'/>
-            
             </div>
         </div>
     </form>
 </div>
-   <script>
-
-document.addEventListener('DOMContentLoaded', function() {
-    var menuToggle = document.getElementById('menu-toggle');
-    var menu = document.getElementById('menu');
-
-    menuToggle.addEventListener('click', function() {
-        menu.classList.toggle('active');
-    });
-});
-
- 
-    
+<!-- Jquery Script CDN -->
+<script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
+<script>
     $(document).ready(function(){
        
         $("#date").datepicker({
@@ -174,7 +153,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
  
         $("#btn-add-row").click(function(){
-          var row="<tr class='text-center'> <td><input type='text' id='productname' required name='pname[]' class='form-control autocomplete'><div id='suggestions'></div></td><td><input type='text' id='price' required name='price[]' class='form-control price' readonly></td> <td><input type='text' required name='qty[]' class='form-control qty'></td> <td><input type='text' required name='total[]' class='form-control total'></td> <td><input type='button' value='x' class='btn btn-danger btn-sm btn-row-remove'> </td> </tr>";
+          var row="<tr class='text-center'> <td><input type='text' id='productname' required name='pname[]' class='form-control autocomplete'><div id='suggestions'></div></td><td><input type='text' id='price' required name='price[]' class='form-control price'></td> <td><input type='text' required name='qty[]' class='form-control qty'></td> <td><input type='text' required name='total[]' class='form-control total'></td> <td><input type='button' value='x' class='btn btn-danger btn-sm btn-row-remove'> </td> </tr>";
           
           $("#product_tbody").append(row);
 
@@ -261,6 +240,7 @@ $(document).ready(function() {
                 data: {query: query},
                 success: function(data) {
                     $('#suggestions').html(data);
+                    $('#suggestions').function(data)
                 }
             });
         } else {
@@ -281,8 +261,8 @@ $(document).ready(function() {
     });
 });
 
+     
 
     </script>
     
-</body>
-</html>
+    <?php include 'include_common/footer.php' ?>

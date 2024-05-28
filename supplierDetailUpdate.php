@@ -1,41 +1,36 @@
 <?php
-session_start();
-
-if (!isset($_SESSION['userid'])) {
-    header("Location: Login.php");
-    return;
-     }
 $connection = mysqli_connect("localhost", "root", "", "invoice_db");
 if ($connection->connect_error) {
     die("Connection failed: " . $connection->connect_error);
 }
 
 if (isset($_GET["update"])) {
-    $sql = "SELECT * FROM add_customer WHERE ID='{$_GET["update"]}'";
+    $sql = "SELECT * FROM supplier_list WHERE supplier_id='{$_GET["update"]}'";
     $data = mysqli_query($connection, $sql);
 
     if ($row = mysqli_fetch_array($data)) {
-        $sid = $row['ID'];
-        $name = $row['CUSNAME'];
-        $address = $row["CUSADDRESS"];
-        $cityString = $row['CUSCITY'];
-        $cityArray = explode(', ', $cityString);
+        $company_id=$row['supplier_id'];
+        $company_name  = $row ['company_name'];
+        $contact  = $row["contact"];
+        $addressString  = $row["company_address"];
+        $company_address = explode(', ', $addressString);
 
-        $city = isset($cityArray[0]) ? $cityArray[0] : '';
-        $state = isset($cityArray[1]) ? $cityArray[1] : '';
-        $country = isset($cityArray[2]) ? $cityArray[2] : '';
-        $pincode = isset($cityArray[3]) ? $cityArray[3] : '';
-
-        $mobile = $row['CUSMOBILE'];
+        $address = isset($company_address[0]) ? $company_address[0] : '';
+        $city = isset($company_address[1]) ? $company_address[1] : '';
+        $state = isset($company_address[2]) ? $company_address[2] : '';
+        $country = isset($company_address[3]) ? $company_address[3] : '';
+        $pincode = isset($company_address[4]) ? $company_address[4] : '';
+       
     }
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
-    $c_name = mysqli_real_escape_string($connection, $_POST['customer_name']);
-    $c_address = mysqli_real_escape_string($connection, $_POST['customer_address']);
-    $c_number = mysqli_real_escape_string($connection, $_POST['customer_number']);
-    $c_city = mysqli_real_escape_string($connection, $_POST['city']);
+    $company_name = mysqli_real_escape_string($connection, $_POST['company_name']);
+    $company_address = mysqli_real_escape_string($connection, $_POST['company_address']);
+    $contact = mysqli_real_escape_string($connection, $_POST['contact']);
+
 // City ID used get City name
+    $c_city = mysqli_real_escape_string($connection, $_POST['city']);
     $city_query = "SELECT * FROM table_name WHERE city_id = $c_city";
     $city_result = mysqli_query($connection, $city_query);
     $city_data = mysqli_fetch_assoc($city_result);
@@ -61,11 +56,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
 
     $c_pincode = mysqli_real_escape_string($connection, $_POST['pincode']);
 
-    $customer_city = $city_value . ', ' . $state_value . ', ' . $country_value . ', ' . $c_pincode;
+    $company_add = $company_address . ', ' .$city_value . ', ' . $state_value . ', ' . $country_value . ', ' . $c_pincode;
 
-    $sql = "UPDATE add_customer SET CUSNAME = '$c_name', CUSADDRESS = '$c_address', CUSCITY = '$customer_city', CUSMOBILE = '$c_number' WHERE ID = $sid";
+    $sql = "UPDATE supplier_list SET company_name = '$company_name', company_address = '$company_add', contact = '$contact' WHERE supplier_id = $company_id";
     if (mysqli_query($connection, $sql)) {
-        echo '<script> location.replace ("customerDeatails.php")</script>';
+        echo '<script> location.replace ("supplierList.php")</script>';
        
     } else {
         echo "Error updating record: " . mysqli_error($connection);
@@ -89,20 +84,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
     <div class="updatecustomer_page">
         <div class="container">
             <h3 class="text-warning font-monospace">Update Customer Details</h3>
-            <form method='post' action='updatecustomer.php?update=<?php echo $_GET["update"]; ?>'>
+            <form method='post' action='supplierDetailUpdate.php?update=<?php echo $_GET["update"]; ?>'>
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="inputName">Name</label>
-                        <input type="text" name="customer_name" value="<?php echo $name ?>" class="form-control" id="inputName" placeholder="Enter Name">
+                        <label for="inputName">Company Name</label>
+                        <input type="text" name="company_name" value="<?php echo $company_name ?>" class="form-control" id="inputName" placeholder="Enter Name">
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="inputAddress">Address</label>
-                    <input type="text" name="customer_address" value="<?php echo $address ?>" class="form-control" id="inputAddress" placeholder="Address">
+                    <label for="inputAddress">Company Address</label>
+                    <input type="text" name="company_address" value="<?php echo $address ?>" class="form-control" id="inputAddress" placeholder="Address">
                 </div>
                 <div class="form-group">
-                    <label for="inputNumber">Mobile Number</label>
-                    <input type="text" name="customer_number" value="<?php echo $mobile ?>" class="form-control" id="inputNumber" placeholder="Enter Mobile Number">
+                    <label for="inputNumber">Contact</label>
+                    <input type="text" name="contact" value="<?php echo $contact ?>" class="form-control" id="inputNumber" placeholder="Enter Mobile Number">
                 </div>
                 <div class="form-group">
                     <label for="country">Country</label>
